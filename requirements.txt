@@ -1,4 +1,4 @@
 streamlit
 yfinance
-weasyprint
 google-generativeai
+weasyprint
