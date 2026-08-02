@@ -22,10 +22,19 @@ if not api_key:
     st.info("👈 Please enter your Gemini API Key in the sidebar menu to unlock generation.")
     st.stop()
 
+# Clean API key from accidental quotes or spaces
+api_key = api_key.strip().strip("'").strip('"')
+
 # Configure Model
-genai.configure(api_key=api_key)
-generation_config = genai.GenerationConfig(response_mime_type="application/json")
-model = genai.GenerativeModel('gemini-1.5-flash', generation_config=generation_config)
+try:
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel(
+        model_name='gemini-1.5-flash',
+        generation_config={"response_mime_type": "application/json"}
+    )
+except Exception as e:
+    st.error(f"API Configuration Error: {e}")
+    st.stop()
 
 if st.button("🚀 Generate Today's PDF Briefing", type="primary", use_container_width=True):
     with st.spinner("Fetching live market feeds & analyzing macro trade-offs..."):
@@ -89,8 +98,12 @@ if st.button("🚀 Generate Today's PDF Briefing", type="primary", use_container
         Return a JSON object with keys: exec_summary, cfo_dilemma, board_pitch, fpna_drill, csuite_treat.
         """
 
-        response = model.generate_content(prompt)
-        ai_content = json.loads(response.text)
+        try:
+            response = model.generate_content(prompt)
+            ai_content = json.loads(response.text)
+        except Exception as err:
+            st.error(f"Gemini API Error: {err}. Please check that your Gemini API Key is active.")
+            st.stop()
 
         # 3. Dynamic Worked Variance Calculations
         crude_price = crude.get('raw_price', 90.0)
@@ -254,4 +267,4 @@ if st.button("🚀 Generate Today's PDF Briefing", type="primary", use_container
             mime="application/pdf",
             use_container_width=True
         )
-      
+        
